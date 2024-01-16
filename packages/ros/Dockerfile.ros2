@@ -1,7 +1,19 @@
 #
 # Dockerfile for building ROS2 from source
-#
-ARG BASE_IMAGE
+# For base image
+    # if l4t_version.major >= 36:   # JetPack 6
+    #     return "ubuntu:22.04" #"nvcr.io/ea-linux4tegra/l4t-jetpack:r36.0.0"
+    # elif l4t_version.major >= 34: # JetPack 5
+    #     if l4t_version >= Version('35.4.1'):
+    #         return "nvcr.io/nvidia/l4t-jetpack:r35.4.1"
+    #     else:
+    #         return f"nvcr.io/nvidia/l4t-jetpack:r{l4t_version}"
+    # else:
+    #     if l4t_version >= Version('32.7.1'):
+    #         return "nvcr.io/nvidia/l4t-base:r32.7.1"
+    #     else:
+    #         return f"nvcr.io/nvidia/l4t-base:r{l4t_version}"
+ARG BASE_IMAGE=ubuntu:focal
 FROM ${BASE_IMAGE}
 
 ARG ROS_PACKAGE=ros_base
@@ -19,7 +31,7 @@ WORKDIR /tmp
 
 # change the locale from POSIX to UTF-8
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends locales \
+    apt-get install -y --no-install-recommends locales python3 \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -40,6 +52,23 @@ ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
 # commands will be appended/run by the entrypoint which sources the ROS environment
 COPY ros_entrypoint.sh /ros_entrypoint.sh
+COPY f1tenth_setup.sh /f1tenth_setup.sh
+WORKDIR /
+RUN mkdir -p workspace/src
+WORKDIR /workspace/src
+RUN git clone https://github.com/f1tenth/f1tenth_system.git
+WORKDIR f1tenth_system
+RUN git submodule update --init --force --remote
+RUN rm -rf vesc
+# incorrect vesc version pinned?
+RUN git clone https://github.com/f1tenth/vesc.git -b ros2
+WORKDIR /workspace
+RUN rosdep update
+# python3-tk not in apt repos?
+#--skip-keys=python3-tk
+# RUN rosdep install --from-paths src -i -y 
+# RUN colcon build
+
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["/bin/bash"]

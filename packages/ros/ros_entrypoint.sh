@@ -24,5 +24,6 @@ fi
 
 echo "ROS_DISTRO $ROS_DISTRO"
 echo "ROS_ROOT   $ROS_ROOT"
+echo "Build F1TENTH System with '/f1tenth_setup.sh'"
 
 exec "$@"

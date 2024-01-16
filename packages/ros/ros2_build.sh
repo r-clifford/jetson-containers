@@ -76,6 +76,8 @@ cd ${ROS_ROOT}
     
 # download ROS sources
 # https://answers.ros.org/question/325245/minimal-ros2-installation/?answer=325249#post-id-325249
+	# image_geometry \
+# ADD REQUIRED PACKAGES
 rosinstall_generator --deps --rosdistro ${ROS_DISTRO} ${ROS_PACKAGE} \
 	launch_xml \
 	launch_yaml \
@@ -90,11 +92,16 @@ rosinstall_generator --deps --rosdistro ${ROS_DISTRO} ${ROS_PACKAGE} \
 	v4l2_camera \
 	vision_opencv \
 	vision_msgs \
-	image_geometry \
 	image_pipeline \
 	image_transport \
 	compressed_image_transport \
 	compressed_depth_image_transport \
+	ackermann_msgs \
+	urg_node \
+	joy \
+	teleop_tools \
+	serial_driver \
+	rosbridge_server \
 > ros2.${ROS_DISTRO}.${ROS_PACKAGE}.rosinstall
 cat ros2.${ROS_DISTRO}.${ROS_PACKAGE}.rosinstall
 vcs import src < ros2.${ROS_DISTRO}.${ROS_PACKAGE}.rosinstall
@@ -104,10 +111,12 @@ rm -r ${ROS_ROOT}/src/ament_cmake
 git -C ${ROS_ROOT}/src/ clone https://github.com/ament/ament_cmake -b ${ROS_DISTRO}
 
 # skip installation of some conflicting packages
-SKIP_KEYS="libopencv-dev libopencv-contrib-dev libopencv-imgproc-dev python-opencv python3-opencv"
+# SKIP_KEYS="libopencv-dev libopencv-contrib-dev libopencv-imgproc-dev python-opencv python3-opencv"
+SKIP_KEYS="libopencv-contrib-dev libopencv-imgproc-dev python-opencv python3-opencv"
 
 # patches for building Humble on 18.04
-if [ "$ROS_DISTRO" = "humble" ] || [ "$ROS_DISTRO" = "iron" ] && [ $(lsb_release --codename --short) = "bionic" ]; then
+if [ "$ROS_DISTRO" = "humble" ] || [ "$ROS_DISTRO" = "iron" ]; then
+# && [ $(lsb_release --codename --short) = "bionic" ]; then
 	# rti_connext_dds_cmake_module: No definition of [rti-connext-dds-6.0.1] for OS version [bionic]
 	SKIP_KEYS="$SKIP_KEYS rti-connext-dds-6.0.1 ignition-cmake2 ignition-math6"
 
@@ -152,5 +161,5 @@ rm -rf ${ROS_ROOT}/build
 rm ${ROS_ROOT}/*.rosinstall
     
 # cleanup apt   
-rm -rf /var/lib/apt/lists/*
-apt-get clean
+# rm -rf /var/lib/apt/lists/*
+# apt-get clean
